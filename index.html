@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <!-- Basic Page Needs
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <meta charset="utf-8">
+  <title>Why Must Physical Distancing?</title>
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!-- Mobile Specific Metas
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- FONT
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
+
+  <!-- CSS
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/skeleton.css">
+
+  <!-- Favicon
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link rel="icon" type="image/png" href="images/favicon.png">
+
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src = "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.bundle.js"></script>
+
+</head>
+<body>
+
+  <!-- Primary Page Layout
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <div class="container">
+    <div class="row">
+      <div class="twelve column" style="margin-top: 5%">
+        <h4>Kenapa Sih Kita Harus Physical Distancing?</h4>
+        <p style="display: inline;">
+          Mari kita asumsikan, bahwa di negara  
+          <select id="countryCode" 
+          onchange="loadDataInfected(this.value)"
+          style="width: 10em;">
+            <option value="null">Pilih Negara</option>
+        </select>
+          <!-- <input type="text" id="countryCode" name="countryCode" onchange="loadDataInfected(this.value)">  -->
+          yang sudah terdapat <p style="display: inline;" id="affected">X</p> kasus positif COVID-19, 
+          lalu diasumsikan semua orang yang positif tersebut tidak menyadari sudah terkena COVID-19 dan mereka tetap melaksanakan 
+          kegiatan seperti biasanya,
+           lalu secara tidak
+          sengaja setiap orangnya bertemu dengan <input type="text" id="personCount" name="personCount"> orang lain rata-rata 
+          setiap harinya. Dan kita asumsikan 
+          peluang penyebaran yang terjadi itu adalah <input type="text" id="chance" name="chance"> persen.
+          Jadi berapa sih kemungkinanan bertambahnya orang yang terinfeksi dalam <input type="text" id="day" name="day"> hari jika
+          anggapannya orang yang bertemu tadi tidak melakukan physical distancing juga dan terus menerus melakukan aktivitas 
+          seperti biasanya? 
+        </p>
+        <button id="btn-load" onclick="loadContent()">Berapa Tuh?</button>
+
+        <div id="tableData">
+          <table style="width:100%">
+            <tr>
+              <th>Total</th>
+              <th>Penambahan</th>
+            </tr>
+            <tr>
+              <td id="total-tbl">0</td>
+              <td id="increase-tbl">0</td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- <h1 id="result"></h1> -->
+
+        <div id=>
+          <canvas id="myChart" width="400" height="400"></canvas>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+
+  
+
+<!-- End Document
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+</body>
+
+
+</html>
+
+<script>
+  var myChart
+
+  $(document).ready(function() {
+      var selectList = document.getElementById("countryCode")
+
+      axios.get('http://192.168.0.15:1234/corona/all-country')
+      .then(function (response){
+        console.log(response)
+        for (var i = 0; i < response.data.length; i++) {
+            var option = document.createElement("option");
+            option.value = response.data[i].CountryCode;
+            option.text = response.data[i].Country;
+            selectList.appendChild(option);
+        }
+      })
+
+      getChart()
+  });
+
+
+  function loadDataInfected(val){  
+      console.log(countryCode)
+
+      axios.get('http://192.168.0.15:1234/corona/by-country/' + val)
+          .then(function (response) {
+              console.log(response)
+              var TotalConfirmed = response.data.TotalConfirmed
+
+              document.getElementById("affected").innerHTML = TotalConfirmed;
+          })
+          .catch(function (error) {
+              // handle error 
+              console.log(error);
+          });
+
+  }
+
+  function loadContent() {
+      localStorage.clear();
+      document.getElementById("btn-load").innerHTML = "loading...";
+      document.getElementById("btn-load").setAttribute("disabled", "true");
+
+      var countryCode = document.getElementById("countryCode").value;
+      var chance = document.getElementById("chance").value;
+      var personMeet = document.getElementById("personCount").value;
+      var day = document.getElementById("day").value;
+      var dataPerDay = null
+      var totalXDay = null
+      var totalNow = null
+      
+      axios.get('http://192.168.0.15:1234/corona/estimation-on-x-day/' + countryCode + "/" + chance + "/" + personMeet + "/" + day)
+          .then(function (response) {
+              console.log(response)
+              var increase = response.data.EstimationIncreasedInfectedPerson
+              totalXDay = response.data.EstimationOnXDay
+              totalNow = response.data.Country.TotalConfirmed
+              dataPerDay = response.data.DayData
+
+              // document.getElementById("result").innerHTML = increase;
+              document.getElementById("increase-tbl").innerHTML = increase;
+              document.getElementById("total-tbl").innerHTML = totalXDay;
+          })
+          .catch(function (error) {
+              // handle error
+              console.log(error);
+          })
+          .then(function () {
+              document.getElementById("btn-load").innerHTML = "Berapa Tuh?";
+              document.getElementById("btn-load").removeAttribute("disabled");
+              getChart(totalNow, totalXDay, dataPerDay);
+          });
+  }
+
+  function getChart(totalNow, totalXDay, dataPerDay){
+    var ctx = document.getElementById('myChart');
+
+    // var countryCode = document.getElementById("countryCode").value;
+    var chance = document.getElementById("chance").value;
+    var personMeet = document.getElementById("personCount").value;
+    var day = document.getElementById("day").value;
+
+    var dayArr = []
+    var dayTotal = []
+
+    for(var i = 0; i < dataPerDay.length; i++){
+      dayArr.push(dataPerDay[i].DateStr);
+      dayTotal.push(dataPerDay[i].Total);
+    }
+
+    if(myChart){
+      myChart.destroy();
+    }
+    
+    myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+        labels: dayArr,
+        datasets: [{
+            label: 'Estimation',
+            backgroundColor: 'rgb(255, 99, 132)',
+            borderColor: 'rgb(255, 99, 132)',
+            data: dayTotal
+        }]
+        },
+        options: {
+            // scales: {
+            //     yAxes: [{
+            //         ticks: {
+            //             beginAtZero: true
+            //         }
+            //     }]
+            // }
+        }
+    });   
+  }
+
+  
+</script>
