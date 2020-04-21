@@ -98,7 +98,7 @@
   $(document).ready(function() {
       var selectList = document.getElementById("countryCode")
 
-      axios.get('http://192.168.0.15:1234/corona/all-country')
+      axios.get('https://safe-inlet-15345.herokuapp.com/corona/all-country')
       .then(function (response){
         console.log(response)
         for (var i = 0; i < response.data.length; i++) {
@@ -116,7 +116,7 @@
   function loadDataInfected(val){  
       console.log(countryCode)
 
-      axios.get('http://192.168.0.15:1234/corona/by-country/' + val)
+      axios.get('https://safe-inlet-15345.herokuapp.com/corona/by-country/' + val)
           .then(function (response) {
               console.log(response)
               var TotalConfirmed = response.data.TotalConfirmed
@@ -143,7 +143,7 @@
       var totalXDay = null
       var totalNow = null
       
-      axios.get('http://192.168.0.15:1234/corona/estimation-on-x-day/' + countryCode + "/" + chance + "/" + personMeet + "/" + day)
+      axios.get('https://safe-inlet-15345.herokuapp.com/corona/estimation-on-x-day/' + countryCode + "/" + chance + "/" + personMeet + "/" + day)
           .then(function (response) {
               console.log(response)
               var increase = response.data.EstimationIncreasedInfectedPerson
