@@ -152,7 +152,7 @@
       var totalXDay = null
       var totalNow = null
       
-      axios.get('https://safe-inlet-15345.herokuapp.com/corona/estimation-on-x-day/' + countryCode + "/" + chance + "/" + personMeet + "/" + day)
+      axios.get('http://ec2-54-255-201-26.ap-southeast-1.compute.amazonaws.com:3000/corona/estimation-on-x-day/' + countryCode + "/" + chance + "/" + personMeet + "/" + day)
           .then(function (response) {
               console.log(response)
               var increase = response.data.EstimationIncreasedInfectedPerson
